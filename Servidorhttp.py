@@ -4,16 +4,10 @@ import os
 HOST = 'localhost'
 PORT = 8000
 
-DIRECTORY_PATH = r'C:\\Users\\elias\\OneDrive\\Área de Trabalho\\Testepservidor'
+Diretoriodestino = r'C:\\Users\\elias\\OneDrive\\Área de Trabalho\\Testepservidor'
+Tipospermitidos = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.otf', '.txt', '.html']
 
-ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.otf', '.txt', '.html']
-
-#def handle_request(request):
-    # Analisa a solicitação HTTP para obter o caminho do arquivo solicitado
- #   request_lines = request.split('\r\n')
-  #  first_line = request_lines[0]
-   # method, path, protocol = first_line.split(' ')
-def handle_request(request):
+def requisicao(request):
     # Analisa a solicitação HTTP para obter o caminho do arquivo solicitado
     request_lines = request.split('\r\n')
 
@@ -30,15 +24,15 @@ def handle_request(request):
     if method == 'GET':
         if path == '/':
             # Obtém a lista de arquivos no diretório especificado
-            entries = os.listdir(DIRECTORY_PATH)
+            entries = os.listdir(Diretoriodestino)
 
             # Cria uma lista de links para os arquivos permitidos
             file_links = []
             for entry in entries:
-                entry_path = os.path.join(DIRECTORY_PATH, entry)
+                entry_path = os.path.join(Diretoriodestino, entry)
                 if os.path.isfile(entry_path):
                     extension = os.path.splitext(entry)[1].lower()
-                    if extension in ALLOWED_EXTENSIONS:
+                    if extension in Tipospermitidos:
                         file_links.append(f'<li><a href="/download/{entry}">{entry}</a></li>')
 
             # Gera a resposta HTML com os links de download dos arquivos
@@ -58,7 +52,7 @@ def handle_request(request):
         elif path.startswith('/download/'):
             # Obtém o nome do arquivo solicitado
             file_name = path.split('/')[-1]
-            file_path = os.path.join(DIRECTORY_PATH, file_name)
+            file_path = os.path.join(Diretoriodestino, file_name)
 
             # Verifica se o arquivo existe no diretório especificado
             if os.path.isfile(file_path):
@@ -88,7 +82,7 @@ def run():
         server_socket.listen(5)  # Aumentamos o valor para aceitar múltiplas conexões
         print(f'Servidor rodando em http://{HOST}:{PORT}')
 
-        connections = []  # Lista para armazenar as conexões estabelecidas
+        conexoes = []  # Lista para armazenar as conexões estabelecidas
 
         while True:
             # Aguarda e aceita uma conexão do cliente
@@ -96,14 +90,14 @@ def run():
             print(f'Conexão estabelecida: {client_address[0]}:{client_address[1]}')
 
             # Adiciona a conexão à lista de conexões estabelecidas
-            connections.append(client_socket)
+            conexoes.append(client_socket)
 
             # Recebe os dados da solicitação do cliente
-            request_data = client_socket.recv(1024).decode('utf-8')
-            print(f'Dados da solicitação:\n{request_data}')
+            requisitar_dados = client_socket.recv(1024).decode('utf-8')
+            print(f'Dados da solicitação:\n{requisitar_dados}')
 
             # Processa a solicitação e obtém a resposta
-            response = handle_request(request_data)
+            response = requisicao(requisitar_dados)
 
             # Envia a resposta ao cliente
             client_socket.sendall(response.encode('utf-8'))
@@ -111,7 +105,7 @@ def run():
             # Se o caminho de download foi solicitado, envia o arquivo
             if response.startswith('HTTP/1.1 200 OK\r\nContent-Disposition: attachment; filename='):
                 file_name = response.split('\r\n\r\n')[0].split('filename=')[1]
-                file_path = os.path.join(DIRECTORY_PATH, file_name)
+                file_path = os.path.join(Diretoriodestino, file_name)
 
                 if os.path.isfile(file_path):
                     with open(file_path, 'rb') as file:
@@ -123,11 +117,11 @@ def run():
             client_socket.close()
 
             # Remove a conexão da lista após encerrá-la
-            connections.remove(client_socket)
+            conexoes.remove(client_socket)
 
         # Exibe as conexões ativas no terminal
-        print(f'Conexões ativas: {len(connections)}')
-        for connection in connections:
+        print(f'Conexões ativas: {len(conexoes)}')
+        for connection in conexoes:
             print(f'Conexão: {connection.getpeername()[0]}:{connection.getpeername()[1]}')
 
 run()
