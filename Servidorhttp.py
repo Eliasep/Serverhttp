@@ -8,7 +8,7 @@ Diretoriodestino = r'C:\\Users\\elias\\OneDrive\\Área de Trabalho\\Testepservid
 Tipospermitidos = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.otf', '.txt', '.html']
 
 def requisicao(request):
-    # Analisa a solicitação HTTP para obter o caminho do arquivo solicitado
+    # Analisa a solicitação HTTP para obter o path do arquivo solicitado
     request_lines = request.split('\r\n')
 
     if request_lines:
@@ -16,12 +16,12 @@ def requisicao(request):
         parts = first_line.split(' ')
 
         if len(parts) == 3:
-            method, path, protocol = parts
+            metodo, path, protocolo = parts
         else:
             # Gera uma resposta para solicitação inválida
-            response = 'HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\n\r\n<h1>Solicitação inválida</h1>'
-            return response
-    if method == 'GET':
+            resposta = 'HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\n\r\n<h1>Solicitação inválida</h1>'
+            return resposta
+    if metodo == 'GET':
         if path == '/':
             # Obtém a lista de arquivos no diretório especificado
             entries = os.listdir(Diretoriodestino)
@@ -36,7 +36,7 @@ def requisicao(request):
                         file_links.append(f'<li><a href="/download/{entry}">{entry}</a></li>')
 
             # Gera a resposta HTML com os links de download dos arquivos
-            response_content = f'''
+            conteudo_resposta = f'''
             <html>
             <body>
                 <h1>Arquivos Disponíveis para Download</h1>
@@ -48,31 +48,31 @@ def requisicao(request):
             '''
 
             # Gera a resposta HTTP
-            response = f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {len(response_content)}\r\n\r\n{response_content}'
+            resposta = f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {len(conteudo_resposta)}\r\n\r\n{conteudo_resposta}'
         elif path.startswith('/download/'):
             # Obtém o nome do arquivo solicitado
-            file_name = path.split('/')[-1]
-            file_path = os.path.join(Diretoriodestino, file_name)
+            nome_arquivo = path.split('/')[-1]
+            lista_links = os.path.join(Diretoriodestino, nome_arquivo)
 
             # Verifica se o arquivo existe no diretório especificado
-            if os.path.isfile(file_path):
+            if os.path.isfile(lista_links):
                 # Gera a resposta HTTP com o cabeçalho de download
-                response = f'HTTP/1.1 200 OK\r\nContent-Disposition: attachment; filename={file_name}\r\n\r\n'
+                resposta = f'HTTP/1.1 200 OK\r\nContent-Disposition: attachment; filename={nome_arquivo}\r\n\r\n'
             else:
                 # Gera uma resposta para arquivo não encontrado
-                response = 'HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n<h1>Arquivo não encontrado</h1>'
+                resposta = 'HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n<h1>Arquivo não encontrado</h1>'
         elif path == '/HEADER':
             # Gera a resposta HTTP com o cabeçalho da requisição
-            headers = '\r\n'.join(request_lines[1:])
-            response = f'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n{headers}'
+            cabecalhos = '\r\n'.join(request_lines[1:])
+            resposta = f'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n{cabecalhos}'
         else:
-            # Gera uma resposta para caminho inválido
-            response = 'HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n<h1>Caminho inválido</h1>'
+            # Gera uma resposta para path inválido
+            resposta = 'HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n<h1>path inválido</h1>'
     else:
         # Gera uma resposta para outros métodos HTTP não suportados
-        response = 'HTTP/1.1 405 Method Not Allowed\r\nContent-Type: text/html\r\n\r\n<h1>Método não permitido</h1>'
+        resposta = 'HTTP/1.1 405 metodo Not Allowed\r\nContent-Type: text/html\r\n\r\n<h1>Método não permitido</h1>'
 
-    return response
+    return resposta
 
 def run():
     # Cria um soquete de servidor TCP
@@ -97,18 +97,18 @@ def run():
             print(f'Dados da solicitação:\n{requisitar_dados}')
 
             # Processa a solicitação e obtém a resposta
-            response = requisicao(requisitar_dados)
+            resposta = requisicao(requisitar_dados)
 
             # Envia a resposta ao cliente
-            client_socket.sendall(response.encode('utf-8'))
+            client_socket.sendall(resposta.encode('utf-8'))
 
-            # Se o caminho de download foi solicitado, envia o arquivo
-            if response.startswith('HTTP/1.1 200 OK\r\nContent-Disposition: attachment; filename='):
-                file_name = response.split('\r\n\r\n')[0].split('filename=')[1]
-                file_path = os.path.join(Diretoriodestino, file_name)
+            # Se o path de download foi solicitado, envia o arquivo
+            if resposta.startswith('HTTP/1.1 200 OK\r\nContent-Disposition: attachment; filename='):
+                nome_arquivo = resposta.split('\r\n\r\n')[0].split('filename=')[1]
+                lista_links = os.path.join(Diretoriodestino, nome_arquivo)
 
-                if os.path.isfile(file_path):
-                    with open(file_path, 'rb') as file:
+                if os.path.isfile(lista_links):
+                    with open(lista_links, 'rb') as file:
                         file_data = file.read()
 
                     client_socket.sendall(file_data)
