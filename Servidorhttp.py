@@ -2,10 +2,10 @@ import socket
 import os
 import threading
 
-HOST = '172.18.185.44'
+HOST = '172.18.1.70'
 PORT = 8000
 
-Diretoriodestino = r'C:\\Users\\elias\\OneDrive\\Área de Trabalho\\Testepservidor'
+Diretoriodestino = r'/scratch/convidado/Testepservidor'
 Tipospermitidos = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.otf', '.txt', '.html']
 
 def requisicao(request):
